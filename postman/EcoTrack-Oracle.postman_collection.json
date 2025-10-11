@@ -1,0 +1,77 @@
+{
+  "info": {
+    "name": "EcoTrack Oracle API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+
+    {
+      "name": "List Products",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/products"
+      }
+    },
+    {
+      "name": "Create/Upsert Product",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"name\": \"Granola Integral\", \"category\": \"Cereais\", \"kcal100g\": 380.0, \"co2PerUnit\": 0.9, \"barcode\": \"7891000310101\"}"
+        },
+        "url": "{{base}}/api/products"
+      }
+    },
+    {
+      "name": "Record Scan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"demo@ecotrack.com\", \"barcode\": \"7891000310101\"}"
+        },
+        "url": "{{base}}/api/scan"
+      }
+    },
+    {
+      "name": "List History (by email)",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/scan/history?email=demo@ecotrack.com"
+      }
+    },
+    {
+      "name": "Add Favorite",
+      "request": {
+        "method": "POST",
+        "url": "{{base}}/api/scan/favorite/11111111-1111-1111-1111-111111111111?email=demo@ecotrack.com"
+      }
+    },
+    {
+      "name": "List Nutrition",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/nutrition/11111111-1111-1111-1111-111111111111"
+      }
+    }
+  ]
+}
