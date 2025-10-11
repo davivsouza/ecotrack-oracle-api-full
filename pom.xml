@@ -6,7 +6,7 @@
   <artifactId>ecotrack-oracle-api</artifactId>
   <version>0.1.0</version>
   <name>EcoTrack Oracle API</name>
-  <description>Spring Boot API (Oracle, RAW(16) UUID) — sem Flyway</description>
+  <description>Spring Boot API</description>
   <properties>
     <java.version>17</java.version>
     <spring.boot.version>3.3.3</spring.boot.version>
