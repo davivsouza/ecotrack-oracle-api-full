@@ -6,11 +6,11 @@ O **EcoTrack Oracle API** é uma aplicação Spring Boot que permite rastrear o 
 
 ## 👥 Equipe de Desenvolvimento
 
-| Nome | RM | Responsabilidades |
+| Nome | RM |
 |------|----|------------------|
-| Davi Vasconcelos Souza | 559906 | Implementação HATEOAS, Refatoração Controllers, Lógica de Negócio |
-| Gustavo Dantas Oliveira | 560685 | Documentação, Diagramas, Testes Postman, Coleção de Requisições |
-| Paulo Neto | 560262 | Configuração Spring HATEOAS, Atualização README, Gestão de Configuração |
+| Davi Vasconcelos Souza | 559906 
+| Gustavo Dantas Oliveira | 560685 
+| Paulo Neto | 560262
 
 
 
