@@ -106,7 +106,6 @@ class UserServiceTest {
       .build();
 
     when(repository.findById(userId)).thenReturn(Optional.of(user));
-    when(repository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
     when(repository.save(any(UserAccount.class))).thenReturn(user);
 
     UserAccount result = service.update(userId, updatedData);
