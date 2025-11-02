@@ -1,12 +1,13 @@
 package com.ecotrack.service;
 
 import com.ecotrack.domain.*;
+import com.ecotrack.exception.ResourceConflictException;
+import com.ecotrack.exception.ResourceNotFoundException;
 import com.ecotrack.repository.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -20,11 +21,12 @@ public class ScanService {
   private final ScanHistoryRepository scanRepo;
   private final FavoriteRepository favRepo;
 
+  @Transactional
   public ScanHistory recordScan(@NotBlank String email, @NotBlank String barcode) {
     UserAccount user = userRepo.findByEmail(email)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     Product product = productRepo.findByBarcode(barcode)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("produto não encontrado com código de barras: " + barcode));
 
     ScanHistory scan = ScanHistory.builder()
       .id(UUID.randomUUID())
@@ -38,32 +40,45 @@ public class ScanService {
 
   public List<ScanHistory> listHistory(String email) {
     UserAccount user = userRepo.findByEmail(email)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     return scanRepo.findByUserOrderByScannedAtDesc(user);
   }
 
+  @Transactional
   public Favorite addFavorite(String email, UUID productId) {
     UserAccount user = userRepo.findByEmail(email)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     Product product = productRepo.findById(productId)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("produto não encontrado com id: " + productId));
+    
+    // verifica se já é favorito
+    FavoriteId favId = new FavoriteId(user.getId(), product.getId());
+    if (favRepo.existsById(favId)) {
+      throw new ResourceConflictException("produto já está nos favoritos");
+    }
+    
     Favorite fav = Favorite.builder()
-      .id(new FavoriteId(user.getId(), product.getId()))
+      .id(favId)
       .user(user).product(product)
       .createdAt(OffsetDateTime.now())
       .build();
     return favRepo.save(fav);
   }
 
+  @Transactional
   public void removeFavorite(String email, UUID productId) {
     UserAccount user = userRepo.findByEmail(email)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
-    favRepo.deleteById(new FavoriteId(user.getId(), productId));
+      .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
+    FavoriteId favId = new FavoriteId(user.getId(), productId);
+    if (!favRepo.existsById(favId)) {
+      throw new ResourceNotFoundException("favorito não encontrado");
+    }
+    favRepo.deleteById(favId);
   }
 
   public List<Favorite> listFavorites(String email) {
     UserAccount user = userRepo.findByEmail(email)
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+      .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     return favRepo.findByUser(user);
   }
 }

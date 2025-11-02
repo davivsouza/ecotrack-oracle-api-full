@@ -2,6 +2,7 @@ package com.ecotrack.representation;
 
 import com.ecotrack.domain.Product;
 import lombok.Getter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.lang.NonNull;
@@ -26,8 +27,8 @@ public class ProductRepresentation implements RepresentationModelAssembler<Produ
     // self link
     model.add(linkTo(methodOn(com.ecotrack.controller.ProductController.class).get(id)).withSelfRel());
     
-    // collection link
-    model.add(linkTo(methodOn(com.ecotrack.controller.ProductController.class).list()).withRel("products"));
+    // collection link (com paginação padrão)
+    model.add(linkTo(methodOn(com.ecotrack.controller.ProductController.class).list(Pageable.unpaged())).withRel("products"));
     
     // relacionamentos
     if (product.getBarcode() != null) {

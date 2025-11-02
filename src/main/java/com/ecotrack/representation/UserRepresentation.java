@@ -2,6 +2,7 @@ package com.ecotrack.representation;
 
 import com.ecotrack.domain.UserAccount;
 import lombok.Getter;
+import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.lang.NonNull;
@@ -26,8 +27,8 @@ public class UserRepresentation implements RepresentationModelAssembler<UserAcco
     // self link
     model.add(linkTo(methodOn(com.ecotrack.controller.UserController.class).get(id)).withSelfRel());
     
-    // collection link
-    model.add(linkTo(methodOn(com.ecotrack.controller.UserController.class).list()).withRel("users"));
+    // collection link (com paginação padrão)
+    model.add(linkTo(methodOn(com.ecotrack.controller.UserController.class).list(Pageable.unpaged())).withRel("users"));
     
     // link por email
     if (user.getEmail() != null) {

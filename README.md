@@ -199,26 +199,36 @@ Para mais detalhes, consulte o arquivo `documentos/DIAGRAMA_CLASSES.md`.
 A API implementa **HATEOAS nível 3** (Richardson Maturity Model), retornando links hipermidiáticos em todas as respostas.
 
 ### 📦 Produtos (`/api/products`)
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/products` | Lista todos os produtos |
-| GET | `/api/products/{id}` | Busca produto por ID |
-| GET | `/api/products/barcode/{code}` | Busca produto por código de barras |
-| GET | `/api/products/category/{name}` | Lista produtos por categoria |
-| GET | `/api/products/search?q={term}` | Busca produtos por nome |
-| POST | `/api/products` | Cria novo produto |
-| PUT | `/api/products/{id}` | Atualiza produto existente |
-| DELETE | `/api/products/{id}` | Remove produto |
+| Método | Endpoint | Descrição | Parâmetros de Paginação |
+|--------|----------|-----------|-------------------------|
+| GET | `/api/products` | Lista todos os produtos | `page`, `size`, `sort` |
+| GET | `/api/products/{id}` | Busca produto por ID | - |
+| GET | `/api/products/barcode/{code}` | Busca produto por código de barras | - |
+| GET | `/api/products/category/{name}` | Lista produtos por categoria | `page`, `size`, `sort` |
+| GET | `/api/products/search?q={term}` | Busca produtos por nome | `page`, `size`, `sort` |
+| POST | `/api/products` | Cria novo produto | - |
+| PUT | `/api/products/{id}` | Atualiza produto existente | - |
+| DELETE | `/api/products/{id}` | Remove produto | - |
+
+**Exemplo de paginação:**
+```bash
+GET /api/products?page=0&size=10&sort=name,asc
+```
 
 ### 👤 Usuários (`/api/users`)
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/users` | Lista todos os usuários |
-| GET | `/api/users/{id}` | Busca usuário por ID |
-| GET | `/api/users/by-email?email={email}` | Busca usuário por email |
-| POST | `/api/users` | Cria novo usuário |
-| PUT | `/api/users/{id}` | Atualiza usuário existente |
-| DELETE | `/api/users/{id}` | Remove usuário |
+| Método | Endpoint | Descrição | Parâmetros de Paginação |
+|--------|----------|-----------|-------------------------|
+| GET | `/api/users` | Lista todos os usuários | `page`, `size`, `sort` |
+| GET | `/api/users/{id}` | Busca usuário por ID | - |
+| GET | `/api/users/by-email?email={email}` | Busca usuário por email | - |
+| POST | `/api/users` | Cria novo usuário | - |
+| PUT | `/api/users/{id}` | Atualiza usuário existente | - |
+| DELETE | `/api/users/{id}` | Remove usuário | - |
+
+**Exemplo de paginação:**
+```bash
+GET /api/users?page=0&size=20&sort=email,asc
+```
 
 ### 📱 Escaneamento (`/api/scan`)
 | Método | Endpoint | Descrição |
@@ -323,25 +333,70 @@ O vídeo apresenta:
 ### Implementações Realizadas
 
 1. **HATEOAS Nível 3 (Leonard Richardson)**
-   - Implementação completa de hypermedia como engine da aplicação
-   - Todos os endpoints retornam `EntityModel` e `CollectionModel` com links
-   - Links implementados: self, collection, relacionados (impact, nutrition, scan-history, favorites)
-   - Classes `ProductRepresentation` e `UserRepresentation` para encapsular lógica de links
+   - ✅ Implementação completa de hypermedia como engine da aplicação
+   - ✅ Todos os endpoints retornam `EntityModel`, `CollectionModel` e `PagedModel` com links
+   - ✅ Links implementados: self, collection, relacionados (impact, nutrition, scan-history, favorites)
+   - ✅ Classes `ProductRepresentation` e `UserRepresentation` para encapsular lógica de links
 
-2. **Refatorações de Código**
-   - Separação de responsabilidades com camada de representação
-   - Controllers seguem padrão RESTful completo com HATEOAS
-   - Uso de `RepresentationModelAssembler` para reutilização
+2. **Paginação nas Listagens**
+   - ✅ Implementação de `Pageable` e `PagedResourcesAssembler` em todos os endpoints de listagem
+   - ✅ Endpoints `/api/products` e `/api/users` agora suportam paginação com parâmetros `page`, `size` e `sort`
+   - ✅ Endpoints de busca e categoria também suportam paginação
+   - ✅ Respostas paginadas incluem metadados (total de elementos, total de páginas, etc.)
 
-3. **Documentação Completa**
-   - Diagrama DER completo
-   - Diagrama de Classes de Entidade
-   - README atualizado com todas as informações obrigatórias
+3. **Tratamento Global de Exceções**
+   - ✅ Classe `GlobalExceptionHandler` com `@ControllerAdvice` para tratamento centralizado
+   - ✅ Mensagens de erro padronizadas com estrutura JSON consistente (`ErrorResponse`)
+   - ✅ Tratamento de exceções:
+     - `404 NOT_FOUND`: Recursos não encontrados
+     - `409 CONFLICT`: Conflitos (email duplicado, código de barras duplicado)
+     - `400 BAD_REQUEST`: Erros de validação e tipos inválidos
+     - `500 INTERNAL_SERVER_ERROR`: Erros internos do servidor
+   - ✅ Validações de entrada com mensagens detalhadas por campo
 
-4. **Gestão de Configuração**
-   - Todos os artefatos versionados no GitHub
-   - Coleção Postman completa para testes
-   - Documentação organizada em pasta `documentos/`
+4. **Validações de Negócio Aprimoradas**
+   - ✅ Verificação de email duplicado no cadastro e atualização de usuários
+   - ✅ Verificação de código de barras duplicado em produtos
+   - ✅ Verificação de favoritos duplicados
+   - ✅ Validação de existência de recursos antes de operações de exclusão
+   - ✅ Exceções customizadas: `ResourceNotFoundException` e `ResourceConflictException`
+
+5. **Transações e Integridade de Dados**
+   - ✅ Uso de `@Transactional` em métodos de criação, atualização e exclusão
+   - ✅ Validações de integridade antes de operações no banco de dados
+   - ✅ Tratamento de violações de integridade com mensagens adequadas
+
+6. **Refatorações de Código**
+   - ✅ Separação de responsabilidades com camada de representação
+   - ✅ Controllers seguem padrão RESTful completo com HATEOAS
+   - ✅ Uso de `RepresentationModelAssembler` para reutilização
+   - ✅ Services refatorados com melhor tratamento de erros e validações
+   - ✅ Código mais limpo e manutenível com mensagens de erro descritivas
+
+7. **Testes Automatizados**
+   - ✅ Testes unitários para `ProductService` com Mockito
+   - ✅ Testes unitários para `UserService` com Mockito
+   - ✅ Cobertura de casos de sucesso e falha
+   - ✅ Validação de exceções customizadas
+
+8. **Documentação Completa**
+   - ✅ Diagrama DER completo
+   - ✅ Diagrama de Classes de Entidade
+   - ✅ Documentação de arquitetura detalhada
+   - ✅ README atualizado com todas as informações obrigatórias
+
+9. **Gestão de Configuração**
+   - ✅ Todos os artefatos versionados no GitHub
+   - ✅ Coleção Postman completa para testes
+   - ✅ Documentação organizada em pasta `documentos/`
+
+### Melhorias de Qualidade
+
+- **Tratamento de Erros Robusto**: Todas as exceções são tratadas de forma consistente
+- **Validações Completas**: Validação em múltiplas camadas (entrada, negócio, banco)
+- **Mensagens Descritivas**: Erros retornam mensagens claras e acionáveis
+- **Código Testável**: Services isolados e testáveis com mocks
+- **Performance**: Paginação reduz carga no banco de dados e melhora resposta da API
 
 ## 📋 Padrões de Projeto Implementados
 
@@ -360,6 +415,41 @@ A aplicação utiliza um conversor customizado (`UuidRaw16Converter`) para traba
 - **@NotBlank** - Campos obrigatórios
 - **@Email** - Validação de formato de email
 - **@Valid** - Validação de objetos complexos
+- **Validações de Negócio** - Verificação de emails e códigos de barras duplicados
+- **Tratamento de Exceções** - Respostas padronizadas com `ErrorResponse`
+
+### Tratamento de Erros
+
+A API retorna respostas de erro padronizadas com a seguinte estrutura:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "status": 404,
+  "error": "Not Found",
+  "message": "produto não encontrado com id: 123e4567-e89b-12d3-a456-426614174000",
+  "path": "/api/products/123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+Para erros de validação, a resposta inclui detalhes por campo:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "erros de validação encontrados",
+  "path": "/api/products",
+  "validationErrors": [
+    {
+      "field": "name",
+      "message": "não deve estar em branco",
+      "rejectedValue": ""
+    }
+  ]
+}
+```
 
 ## 📝 Documentação Adicional
 

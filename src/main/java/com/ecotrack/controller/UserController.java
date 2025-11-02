@@ -5,17 +5,15 @@ import com.ecotrack.representation.UserRepresentation;
 import com.ecotrack.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,15 +21,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class UserController {
   private final UserService service;
   private final UserRepresentation userRepresentation;
+  private final PagedResourcesAssembler<UserAccount> pagedAssembler;
 
   @GetMapping 
-  public CollectionModel<EntityModel<UserAccount>> list() {
-    List<EntityModel<UserAccount>> users = service.list().stream()
-      .map(userRepresentation::toModel)
-      .collect(Collectors.toList());
-    
-    return CollectionModel.of(users,
-      linkTo(methodOn(UserController.class).list()).withSelfRel());
+  public PagedModel<EntityModel<UserAccount>> list(Pageable pageable) {
+    Page<UserAccount> usersPage = service.list(pageable);
+    return pagedAssembler.toModel(usersPage, userRepresentation);
   }
 
   @GetMapping("/{id}") 
