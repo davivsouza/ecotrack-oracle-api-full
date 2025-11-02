@@ -303,19 +303,6 @@ GET /api/products/barcode/7891000310101
 
 🔗 **[Acessar Vídeo de Apresentação](https://www.youtube.com/watch?v=SEU_VIDEO_AQUI)**
 
-> ⚠️ **Nota**: A equipe deve adicionar o link do vídeo do YouTube ou plataforma escolhida acima.
-
-### Conteúdo do Vídeo
-
-O vídeo apresenta:
-- ✅ **Proposta Tecnológica**: Explicação da solução EcoTrack Oracle API
-- ✅ **Público-Alvo**: Consumidores conscientes, empresas de varejo, organizações ambientais
-- ✅ **Problemas Resolvidos**: 
-  - Rastreamento de impacto ambiental de produtos
-  - Transparência nutricional
-  - Conscientização do consumidor
-  - Dados para tomada de decisão sustentável
-
 ## 🛠️ Tecnologias Utilizadas
 
 - **Java 17** - Linguagem de programação
@@ -477,53 +464,3 @@ Toda a documentação do projeto está disponível na raiz e na pasta `documento
   - Anotações e mapeamentos
   - Padrões de projeto aplicados
 
-### 🧪 Testes
-
-- ✅ **[Coleção Postman Completa](postman/EcoTrack-Oracle.postman_collection.json)**
-  - Todos os endpoints da API organizados por categoria
-  - Exemplos de requisições prontas para uso
-  - Importar no Postman ou Insomnia para testar
-
-### 📍 Localização dos Arquivos
-
-```
-ecotrack-oracle-api-full/
-├── README.md                           ← Este arquivo
-├── documentos/
-│   ├── ARQUITETURA.md                  ← Arquitetura detalhada
-│   ├── DIAGRAMA_DER.md                 ← Diagrama DER
-│   └── DIAGRAMA_CLASSES.md             ← Diagrama de Classes
-└── postman/
-    └── EcoTrack-Oracle.postman_collection.json  ← Testes
-```
-
-## 📚 Padrão REST e HATEOAS
-
-A aplicação está em conformidade com:
-
-- ✅ **Conceitos fundamentais do REST** (Roy Fielding)
-- ✅ **Modelo de maturidade nível 3** (Leonard Richardson - HATEOAS)
-  - Recursos incluem links para ações relacionadas
-  - Clientes navegam pela API através de links hipermidiáticos
-  - Exemplo de resposta com HATEOAS:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "name": "Granola Integral",
-  "category": "Cereais",
-  "_links": {
-    "self": {
-      "href": "http://localhost:8080/api/products/123e4567-e89b-12d3-a456-426614174000"
-    },
-    "products": {
-      "href": "http://localhost:8080/api/products"
-    },
-    "impact": {
-      "href": "http://localhost:8080/api/impact/123e4567-e89b-12d3-a456-426614174000"
-    },
-    "nutrition": {
-      "href": "http://localhost:8080/api/nutrition/123e4567-e89b-12d3-a456-426614174000"
-    }
-  }
-}
-```
