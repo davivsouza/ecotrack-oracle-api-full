@@ -1,20 +1,19 @@
 package com.ecotrack.service;
 
 import com.ecotrack.domain.UserAccount;
+import com.ecotrack.domain.UserRole;
 import com.ecotrack.exception.ResourceConflictException;
 import com.ecotrack.exception.ResourceNotFoundException;
 import com.ecotrack.repository.UserAccountRepository;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +24,9 @@ public class UserService {
     return repo.findAll(pageable);
   }
 
-  public List<UserAccount> list() { return repo.findAll(); }
+  public List<UserAccount> list() {
+    return repo.findAll();
+  }
 
   public UserAccount get(UUID id) {
     return repo.findById(id)
@@ -38,30 +39,37 @@ public class UserService {
   }
 
   @Transactional
-  public UserAccount create(@Valid UserAccount u) {
-    // verifica se email já existe
-    if (repo.findByEmail(u.getEmail()).isPresent()) {
-      throw new ResourceConflictException("email já cadastrado: " + u.getEmail());
+  public UserAccount create(@Valid UserAccount user) {
+    if (repo.findByEmail(user.getEmail()).isPresent()) {
+      throw new ResourceConflictException("email já cadastrado: " + user.getEmail());
     }
-    
-    if (u.getId() == null) u.setId(UUID.randomUUID());
-    u.setCreatedAt(OffsetDateTime.now());
-    u.setUpdatedAt(OffsetDateTime.now());
-    return repo.save(u);
+
+    if (user.getId() == null) {
+      user.setId(UUID.randomUUID());
+    }
+
+    if (user.getRole() == null) {
+      user.setRole(UserRole.ROLE_CONSUMER);
+    }
+
+    OffsetDateTime now = OffsetDateTime.now();
+    user.setCreatedAt(now);
+    user.setUpdatedAt(now);
+    return repo.save(user);
   }
 
   @Transactional
-  public UserAccount update(UUID id, @Valid UserAccount u) {
+  public UserAccount update(UUID id, @Valid UserAccount user) {
     UserAccount db = get(id);
-    
-    // verifica se email está sendo alterado e se já existe
-    if (!db.getEmail().equals(u.getEmail()) && repo.findByEmail(u.getEmail()).isPresent()) {
-      throw new ResourceConflictException("email já cadastrado: " + u.getEmail());
+
+    if (!db.getEmail().equals(user.getEmail()) && repo.findByEmail(user.getEmail()).isPresent()) {
+      throw new ResourceConflictException("email já cadastrado: " + user.getEmail());
     }
-    
-    db.setEmail(u.getEmail());
-    db.setPasswordHash(u.getPasswordHash());
-    db.setDisplayName(u.getDisplayName());
+
+    db.setEmail(user.getEmail());
+    db.setPasswordHash(user.getPasswordHash());
+    db.setDisplayName(user.getDisplayName());
+    db.setRole(user.getRole() == null ? db.getRole() : user.getRole());
     db.setUpdatedAt(OffsetDateTime.now());
     return repo.save(db);
   }
