@@ -1,17 +1,23 @@
 package com.ecotrack.service;
 
-import com.ecotrack.domain.*;
+import com.ecotrack.domain.Favorite;
+import com.ecotrack.domain.FavoriteId;
+import com.ecotrack.domain.Product;
+import com.ecotrack.domain.ScanHistory;
+import com.ecotrack.domain.UserAccount;
 import com.ecotrack.exception.ResourceConflictException;
 import com.ecotrack.exception.ResourceNotFoundException;
-import com.ecotrack.repository.*;
+import com.ecotrack.repository.FavoriteRepository;
+import com.ecotrack.repository.ProductRepository;
+import com.ecotrack.repository.ScanHistoryRepository;
+import com.ecotrack.repository.UserAccountRepository;
 import jakarta.validation.constraints.NotBlank;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +39,7 @@ public class ScanService {
       .product(product)
       .user(user)
       .scannedAt(OffsetDateTime.now())
-      .source("MOBILE")
+      .source("WEB")
       .build();
     return scanRepo.save(scan);
   }
@@ -50,16 +56,16 @@ public class ScanService {
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     Product product = productRepo.findById(productId)
       .orElseThrow(() -> new ResourceNotFoundException("produto não encontrado com id: " + productId));
-    
-    // verifica se já é favorito
+
     FavoriteId favId = new FavoriteId(user.getId(), product.getId());
     if (favRepo.existsById(favId)) {
       throw new ResourceConflictException("produto já está nos favoritos");
     }
-    
+
     Favorite fav = Favorite.builder()
       .id(favId)
-      .user(user).product(product)
+      .user(user)
+      .product(product)
       .createdAt(OffsetDateTime.now())
       .build();
     return favRepo.save(fav);

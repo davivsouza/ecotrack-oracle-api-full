@@ -1,6 +1,7 @@
 package com.ecotrack.service;
 
 import com.ecotrack.domain.UserAccount;
+import com.ecotrack.domain.UserRole;
 import com.ecotrack.exception.ResourceConflictException;
 import com.ecotrack.exception.ResourceNotFoundException;
 import com.ecotrack.repository.UserAccountRepository;
@@ -39,6 +40,7 @@ class UserServiceTest {
       .email("test@example.com")
       .passwordHash("hashedPassword")
       .displayName("Test User")
+      .role(UserRole.ROLE_CONSUMER)
       .createdAt(OffsetDateTime.now())
       .updatedAt(OffsetDateTime.now())
       .build();
@@ -70,6 +72,7 @@ class UserServiceTest {
       .email("new@example.com")
       .passwordHash("password")
       .displayName("New User")
+      .role(UserRole.ROLE_CONSUMER)
       .build();
 
     when(repository.findByEmail("new@example.com")).thenReturn(Optional.empty());
@@ -103,6 +106,7 @@ class UserServiceTest {
       .email("test@example.com")
       .passwordHash("newPassword")
       .displayName("Updated Name")
+      .role(UserRole.ROLE_CONSUMER)
       .build();
 
     when(repository.findById(userId)).thenReturn(Optional.of(user));
@@ -120,11 +124,15 @@ class UserServiceTest {
     UserAccount updatedData = UserAccount.builder()
       .email("existing@example.com")
       .passwordHash("password")
+      .role(UserRole.ROLE_CONSUMER)
       .build();
 
     UserAccount existingUser = UserAccount.builder()
       .id(UUID.randomUUID())
       .email("existing@example.com")
+      .displayName("Existing")
+      .passwordHash("password")
+      .role(UserRole.ROLE_CONSUMER)
       .build();
 
     when(repository.findById(userId)).thenReturn(Optional.of(user));
