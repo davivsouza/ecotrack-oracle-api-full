@@ -33,14 +33,14 @@ public class UserService {
   }
 
   public UserAccount findByEmail(String email) {
-    return repo.findByEmail(email)
+    return repo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
   }
 
   @Transactional
   public UserAccount create(@Valid UserAccount u) {
     // verifica se email já existe
-    if (repo.findByEmail(u.getEmail()).isPresent()) {
+    if (repo.findByEmailIgnoreCase(u.getEmail()).isPresent()) {
       throw new ResourceConflictException("email já cadastrado: " + u.getEmail());
     }
     
@@ -55,7 +55,7 @@ public class UserService {
     UserAccount db = get(id);
     
     // verifica se email está sendo alterado e se já existe
-    if (!db.getEmail().equals(u.getEmail()) && repo.findByEmail(u.getEmail()).isPresent()) {
+    if (!db.getEmail().equalsIgnoreCase(u.getEmail()) && repo.findByEmailIgnoreCase(u.getEmail()).isPresent()) {
       throw new ResourceConflictException("email já cadastrado: " + u.getEmail());
     }
     

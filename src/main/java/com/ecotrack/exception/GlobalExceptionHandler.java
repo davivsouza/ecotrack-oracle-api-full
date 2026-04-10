@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,6 +64,19 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(ex.getStatusCode()).body(error);
   }
 
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, org.springframework.web.context.request.WebRequest request) {
+    log.error("acesso negado: {}", ex.getMessage());
+    ErrorResponse error = ErrorResponse.builder()
+      .timestamp(OffsetDateTime.now())
+      .status(HttpStatus.FORBIDDEN.value())
+      .error("Forbidden")
+      .message("você não tem permissão para acessar este recurso")
+      .path(getPath(request))
+      .build();
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, org.springframework.web.context.request.WebRequest request) {
     log.error("erro de validação: {}", ex.getMessage());
@@ -76,7 +90,7 @@ public class GlobalExceptionHandler {
       .timestamp(OffsetDateTime.now())
       .status(HttpStatus.BAD_REQUEST.value())
       .error("Bad Request")
-      .message("erros de validação encontrados")
+      .message("Dados inválidos.")
       .path(getPath(request))
       .validationErrors(errors)
       .build();
@@ -95,7 +109,7 @@ public class GlobalExceptionHandler {
       .timestamp(OffsetDateTime.now())
       .status(HttpStatus.BAD_REQUEST.value())
       .error("Bad Request")
-      .message("violação de constraints")
+      .message("Dados inválidos.")
       .path(getPath(request))
       .validationErrors(errors)
       .build();
@@ -192,4 +206,3 @@ public class GlobalExceptionHandler {
     return request.getDescription(false).replace("uri=", "");
   }
 }
-

@@ -51,6 +51,35 @@ mvn spring-boot:run
    - Swagger UI: http://localhost:8080/swagger-ui.html
    - API Docs: http://localhost:8080/v3/api-docs
 
+## 🔄 Compatibilidade com o Backend Node (Sprint 3)
+
+Além dos endpoints legados em `/api/...`, esta versão expõe rotas compatíveis com o app mobile:
+
+- `GET /health`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me` (JWT)
+- `GET /products`
+- `GET /products/{id}`
+- `GET /products/barcode/{barcode}` (com fallback Open Food Facts)
+- `GET /history` (JWT)
+- `POST /history` (JWT)
+- `PATCH /history/{id}` (JWT)
+- `DELETE /history/{id}` (JWT)
+- `GET /favorites` (JWT)
+- `POST /favorites` (JWT)
+- `PATCH /favorites/{id}` (JWT)
+- `DELETE /favorites/{id}` (JWT)
+
+### Variáveis de ambiente relevantes
+
+- `DB_URL`, `DB_USER`, `DB_PASSWORD`
+- `JWT_SECRET`, `JWT_EXP_MINUTES`
+- `OPEN_FOOD_FACTS_URL`
+- `ADMIN_EMAILS` (emails com papel ADMIN)
+- `MESSAGING_ENABLED=true` (habilita RabbitMQ)
+- `MESSAGING_EXCHANGE`, `MESSAGING_QUEUE`, `MESSAGING_ROUTING_KEY`
+
 
 ## 🏗️ Arquitetura da Aplicação
 
@@ -463,4 +492,3 @@ Toda a documentação do projeto está disponível na raiz e na pasta `documento
   - Relacionamentos JPA
   - Anotações e mapeamentos
   - Padrões de projeto aplicados
-

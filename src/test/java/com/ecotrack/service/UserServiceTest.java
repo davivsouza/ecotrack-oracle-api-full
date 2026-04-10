@@ -72,7 +72,7 @@ class UserServiceTest {
       .displayName("New User")
       .build();
 
-    when(repository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+    when(repository.findByEmailIgnoreCase("new@example.com")).thenReturn(Optional.empty());
     when(repository.save(any(UserAccount.class))).thenReturn(newUser);
 
     UserAccount result = service.create(newUser);
@@ -80,7 +80,7 @@ class UserServiceTest {
     assertNotNull(result);
     assertNotNull(result.getId());
     assertNotNull(result.getCreatedAt());
-    verify(repository, times(1)).findByEmail("new@example.com");
+    verify(repository, times(1)).findByEmailIgnoreCase("new@example.com");
     verify(repository, times(1)).save(any(UserAccount.class));
   }
 
@@ -91,7 +91,7 @@ class UserServiceTest {
       .passwordHash("password")
       .build();
 
-    when(repository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+    when(repository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
 
     assertThrows(ResourceConflictException.class, () -> service.create(newUser));
     verify(repository, never()).save(any());
@@ -128,7 +128,7 @@ class UserServiceTest {
       .build();
 
     when(repository.findById(userId)).thenReturn(Optional.of(user));
-    when(repository.findByEmail("existing@example.com")).thenReturn(Optional.of(existingUser));
+    when(repository.findByEmailIgnoreCase("existing@example.com")).thenReturn(Optional.of(existingUser));
 
     assertThrows(ResourceConflictException.class, () -> service.update(userId, updatedData));
     verify(repository, never()).save(any());
@@ -153,4 +153,3 @@ class UserServiceTest {
     verify(repository, never()).deleteById(userId);
   }
 }
-

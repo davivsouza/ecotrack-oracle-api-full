@@ -23,7 +23,7 @@ public class ScanService {
 
   @Transactional
   public ScanHistory recordScan(@NotBlank String email, @NotBlank String barcode) {
-    UserAccount user = userRepo.findByEmail(email)
+    UserAccount user = userRepo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     Product product = productRepo.findByBarcode(barcode)
       .orElseThrow(() -> new ResourceNotFoundException("produto não encontrado com código de barras: " + barcode));
@@ -39,14 +39,14 @@ public class ScanService {
   }
 
   public List<ScanHistory> listHistory(String email) {
-    UserAccount user = userRepo.findByEmail(email)
+    UserAccount user = userRepo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     return scanRepo.findByUserOrderByScannedAtDesc(user);
   }
 
   @Transactional
   public Favorite addFavorite(String email, UUID productId) {
-    UserAccount user = userRepo.findByEmail(email)
+    UserAccount user = userRepo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     Product product = productRepo.findById(productId)
       .orElseThrow(() -> new ResourceNotFoundException("produto não encontrado com id: " + productId));
@@ -67,7 +67,7 @@ public class ScanService {
 
   @Transactional
   public void removeFavorite(String email, UUID productId) {
-    UserAccount user = userRepo.findByEmail(email)
+    UserAccount user = userRepo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     FavoriteId favId = new FavoriteId(user.getId(), productId);
     if (!favRepo.existsById(favId)) {
@@ -77,7 +77,7 @@ public class ScanService {
   }
 
   public List<Favorite> listFavorites(String email) {
-    UserAccount user = userRepo.findByEmail(email)
+    UserAccount user = userRepo.findByEmailIgnoreCase(email)
       .orElseThrow(() -> new ResourceNotFoundException("usuário não encontrado com email: " + email));
     return favRepo.findByUser(user);
   }
