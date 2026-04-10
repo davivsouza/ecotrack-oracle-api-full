@@ -13,7 +13,7 @@ import java.util.UUID;
 public class ProductImpact {
 
   @Id
-  @Column(name = "PRODUCT_ID", columnDefinition = "RAW(16)")
+  @Column(name = "PRODUCT_ID")
   private UUID productId;
 
   @OneToOne

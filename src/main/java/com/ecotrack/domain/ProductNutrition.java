@@ -11,7 +11,7 @@ import java.util.UUID;
 public class ProductNutrition {
 
   @Id
-  @Column(name = "ID", columnDefinition = "RAW(16)")
+  @Column(name = "ID")
   private UUID id;
 
   @ManyToOne(optional = false)

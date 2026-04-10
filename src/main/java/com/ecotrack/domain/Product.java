@@ -13,7 +13,7 @@ import java.util.UUID;
 public class Product {
 
   @Id
-  @Column(name = "ID", columnDefinition = "RAW(16)")
+  @Column(name = "ID")
   private UUID id; // GUID gerado no .NET; se null, API pode gerar para testes
 
   @NotBlank

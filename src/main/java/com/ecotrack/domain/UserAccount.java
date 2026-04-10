@@ -15,7 +15,7 @@ import java.util.UUID;
 public class UserAccount {
 
   @Id
-  @Column(name = "ID", columnDefinition = "RAW(16)")
+  @Column(name = "ID")
   private UUID id;
 
   @Email

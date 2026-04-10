@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class MobileProductService {
+  private static final int MAX_NUTRI_VALUE_LENGTH = 120;
 
   private final ProductRepository productRepository;
   private final ProductImpactRepository productImpactRepository;
@@ -233,7 +234,7 @@ public class MobileProductService {
       .id(UUID.randomUUID())
       .product(product)
       .nutriKey(key)
-      .nutriValue(value)
+      .nutriValue(limit(value, MAX_NUTRI_VALUE_LENGTH))
       .build();
     productNutritionRepository.save(row);
   }
@@ -410,5 +411,13 @@ public class MobileProductService {
 
   private String safe(String value) {
     return value == null ? null : value.trim();
+  }
+
+  private String limit(String value, int max) {
+    if (value == null) {
+      return null;
+    }
+    String normalized = value.trim();
+    return normalized.length() <= max ? normalized : normalized.substring(0, max);
   }
 }
