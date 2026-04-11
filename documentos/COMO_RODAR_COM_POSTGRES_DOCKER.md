@@ -1,8 +1,8 @@
-# Como Rodar o Projeto com PostgreSQL (Docker)
+# Como rodar com PostgreSQL + Docker
 
-Este projeto agora suporta rodar localmente com PostgreSQL, sem depender do Oracle da FIAP.
+Este guia sobe o banco local e roda a API no profile `postgres`.
 
-## 1) Subir o banco com Docker
+## 1) Subir PostgreSQL
 
 Na raiz do projeto:
 
@@ -10,56 +10,73 @@ Na raiz do projeto:
 docker compose -f docker-compose.postgres.yml up -d
 ```
 
-Verifique saúde do container:
+Validar container:
 
 ```bash
 docker ps
 ```
 
-## 2) Garantir Java 17 no terminal
+Esperado:
+- container `ecotrack-postgres` em estado `healthy`
+- porta `5432` publicada
 
-```bash
-export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home
-export PATH=/opt/homebrew/bin:$JAVA_HOME/bin:$PATH
-```
-
-## 3) Rodar a API com profile `postgres`
+## 2) Rodar a API com profile postgres
 
 ```bash
 SPRING_PROFILES_ACTIVE=postgres mvn spring-boot:run
 ```
 
-Com isso, a API vai usar:
+Esse profile usa por padrao:
+- `DB_URL=jdbc:postgresql://localhost:5432/ecotrack`
+- `DB_USER=ecotrack`
+- `DB_PASSWORD=ecotrack`
 
-- `jdbc:postgresql://localhost:5432/ecotrack`
-- user: `ecotrack`
-- password: `ecotrack`
+Schema:
+- `src/main/resources/schema-postgres.sql` e aplicado automaticamente.
 
-## 4) Testar rápido
+## 3) Teste rapido de endpoints
 
-- Health: `GET http://localhost:8080/health`
 - Swagger: `http://localhost:8080/swagger-ui.html`
+- API docs: `http://localhost:8080/v3/api-docs`
+- Health: `http://localhost:8080/health`
 
-## 5) Rodar testes/build
+Observacao importante:
+- O health usa query Oracle (`SELECT 1 FROM DUAL`).
+- Em Postgres, o campo `database` da resposta pode vir `down` mesmo com API funcionando.
+
+## 4) Rodar testes
 
 ```bash
-SPRING_PROFILES_ACTIVE=postgres mvn test
-SPRING_PROFILES_ACTIVE=postgres mvn -DskipTests package
+mvn test
 ```
 
-## Variáveis opcionais
-
-Se quiser sobrescrever credenciais/host:
+## 5) Variaveis uteis (opcional)
 
 ```bash
+export SPRING_PROFILES_ACTIVE=postgres
 export DB_URL=jdbc:postgresql://localhost:5432/ecotrack
 export DB_USER=ecotrack
 export DB_PASSWORD=ecotrack
-export SPRING_PROFILES_ACTIVE=postgres
+
+# seguranca
+export JWT_SECRET=ecotrack-dev-secret
+export JWT_EXP_MINUTES=10080
+export ADMIN_EMAILS=admin@ecotrack.com
+
+# integracoes
+export OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
+export INTERNAL_API_BASE_URL=http://localhost:8080
+
+# mensageria (opcional)
+export MESSAGING_ENABLED=false
 ```
 
-## Observações
+## 6) Mensageria (opcional)
 
-- O schema do Postgres é criado automaticamente via `src/main/resources/schema-postgres.sql`.
-- O profile Oracle continua existindo no `application.properties` padrão.
-- Para integrar o front, em geral basta trocar a URL base da API.
+Se quiser testar eventos RabbitMQ:
+- ative `MESSAGING_ENABLED=true`
+- configure exchange/queue/routing key via env vars
+- garanta um broker RabbitMQ acessivel
+
+Eventos sao publicados em fluxos de historico e favoritos.
+

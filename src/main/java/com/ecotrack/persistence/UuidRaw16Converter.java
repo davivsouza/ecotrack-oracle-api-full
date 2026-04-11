@@ -5,7 +5,7 @@ import jakarta.persistence.Converter;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-@Converter(autoApply = true)
+@Converter(autoApply = false)
 public class UuidRaw16Converter implements AttributeConverter<UUID, byte[]> {
 
   @Override

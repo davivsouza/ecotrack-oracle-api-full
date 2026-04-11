@@ -1,254 +1,149 @@
 # Diagrama de Classes - EcoTrack Oracle API
 
-## Visão Geral da Arquitetura
+## Visao geral
 
-A aplicação segue uma arquitetura em camadas (Layered Architecture) com separação clara de responsabilidades:
+Este documento resume a estrutura de classes atual do projeto por camada, refletindo o estado atual do codigo.
 
-- **Controller Layer**: Endpoints REST
-- **Service Layer**: Lógica de negócio
-- **Repository Layer**: Acesso a dados
-- **Domain Layer**: Entidades JPA
-- **Representation Layer**: Modelos HATEOAS
+## Diagrama de camadas (alto nivel)
 
-## Diagrama de Classes de Entidade (Domain Layer)
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                      DOMAIN LAYER                       │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────┐
-│           UserAccount               │
-├─────────────────────────────────────┤
-│ - id: UUID                          │
-│ - email: String                     │
-│ - passwordHash: String              │
-│ - displayName: String               │
-│ - createdAt: OffsetDateTime         │
-│ - updatedAt: OffsetDateTime         │
-└─────────────────────────────────────┘
-                  │
-                  │ 1
-                  │
-                  │ N
-┌─────────────────┴─────────────────────────────────┐
-│                                                 │
-│ N                                         N     │
-│                                            │     │
-│  ┌─────────────────────┐    ┌──────────────────┐│
-│  │   ScanHistory       │    │    Favorite      ││
-│  ├─────────────────────┤    ├──────────────────┤│
-│  │ - id: UUID          │    │ - id: FavoriteId ││
-│  │ - user: UserAccount │    │ - user: UserAcc. ││
-│  │ - product: Product  │    │ - product: Prod. ││
-│  │ - scannedAt: ODT    │    │ - createdAt: ODT ││
-│  │ - source: String    │    └──────────────────┘│
-│  └─────────────────────┘                        │
-│            │                                    │
-│            │ N                                   │
-│            │                                     │
-┌────────────▼─────────────────────────────────────┐
-│              Product                             │
-├──────────────────────────────────────────────────┤
-│ - id: UUID                                       │
-│ - name: String                                   │
-│ - category: String                               │
-│ - kcal100g: BigDecimal                           │
-│ - co2PerUnit: BigDecimal                         │
-│ - barcode: String                                │
-└────────────┬─────────────────────────────────────┘
-             │
-     ┌───────┼───────┐
-     │ 1     │ 1     │ N
-     │       │       │
-┌────▼───┐ ┌─▼────┐ ┌▼───────────────────┐
-│Product │ │Prod. │ │ ProductNutrition   │
-│Impact  │ │Impact│ ├────────────────────┤
-├────────┤ ├──────┤ │ - id: UUID         │
-│-prodId │ │-prod │ │ - product: Product │
-│-co2Per │ │-co2  │ │ - nutriKey: String │
-│Unit    │ │PerU  │ │ - nutriValue: Str │
-│-waterL │ │nit   │ └────────────────────┘
-│-origin │ └──────┘
-│-updAt  │
-└────────┘
-
-┌─────────────────────────────────────┐
-│         FavoriteId                  │
-│  (EmbeddedId - Chave Composta)      │
-├─────────────────────────────────────┤
-│ - userId: UUID                      │
-│ - productId: UUID                   │
-└─────────────────────────────────────┘
+```text
+Clients (Mobile/Web/Postman)
+        |
+        v
+Controllers
+  - AuthController
+  - MobileProductController
+  - HistoryController
+  - FavoriteController
+  - HealthController
+  - ProductController
+  - UserController
+  - ScanController
+  - ImpactController
+  - NutritionController
+        |
+        v
+Services
+  - AuthService
+  - MobileProductService
+  - MobileHistoryService
+  - MobileFavoriteService
+  - ProductService
+  - UserService
+  - ScanService
+  - ImpactService
+  - NutritionService
+  - ExternalIdCodec
+  - UserActivityEventPublisher
+        |
+        v
+Repositories (Spring Data JPA)
+  - ProductRepository
+  - UserAccountRepository
+  - ScanHistoryRepository
+  - FavoriteRepository
+  - ProductImpactRepository
+  - ProductNutritionRepository
+        |
+        v
+Domain (JPA)
+  - Product
+  - UserAccount
+  - ScanHistory
+  - Favorite
+  - FavoriteId
+  - ProductImpact
+  - ProductNutrition
 ```
 
-## Diagrama de Classes da Aplicação (Camadas)
+## Diagrama de dominio (entidades)
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                  CONTROLLER LAYER                       │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌──────────────────┐  ┌──────────────────┐            │
-│  │ ProductController│  │ UserController    │            │
-│  ├──────────────────┤  ├──────────────────┤            │
-│  │ + list()         │  │ + list()         │            │
-│  │ + get(id)         │  │ + get(id)        │            │
-│  │ + create(p)       │  │ + create(u)     │            │
-│  │ + update(id, p)   │  │ + update(id, u) │            │
-│  │ + delete(id)      │  │ + delete(id)    │            │
-│  │ + byBarcode(code) │  │ + byEmail(email)│            │
-│  │ + byCategory(n)   │  └──────────────────┤            │
-│  │ + search(q)       │                          │
-│  └──────────────────┘                          │
-│            │                                    │
-│  ┌─────────┼──────────────────┐                │
-│  │         │                  │                │
-│  │ ┌───────▼──────┐  ┌───────▼──────┐         │
-│  │ │ ScanController│  │ImpactController│       │
-│  │ │ NutritionCtrl│  └──────────────┘         │
-│  │ └──────────────┘                            │
-│  └─────────────────────────────────────────────┘
-│                    │
-│                    │ usa
-│                    │
-┌────────────────────▼─────────────────────────────┐
-│              REPRESENTATION LAYER                 │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  ┌──────────────────┐  ┌──────────────────┐    │
-│  │ProductRepresent. │  │UserRepresentation│    │
-│  ├──────────────────┤  ├──────────────────┤    │
-│  │ + toModel(p):    │  │ + toModel(u):    │    │
-│  │   EntityModel    │  │   EntityModel    │    │
-│  └──────────────────┘  └──────────────────┘    │
-│                                                  │
-└──────────────────────────────────────────────────┘
-                    │
-                    │ usa
-                    │
-┌────────────────────▼─────────────────────────────┐
-│               SERVICE LAYER                       │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐             │
-│  │ProductService│  │ UserService  │             │
-│  ├──────────────┤  ├──────────────┤             │
-│  │ + list()      │  │ + list()     │             │
-│  │ + get(id)     │  │ + get(id)    │             │
-│  │ + upsert(p)   │  │ + create(u) │             │
-│  │ + delete(id)  │  │ + update()   │             │
-│  │ + findByBar() │  │ + findByEmail│             │
-│  │ + byCategory() │  │ + delete(id) │             │
-│  │ + search(q)   │  └──────────────┘             │
-│  └──────────────┘                                │
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐             │
-│  │ ScanService  │  │ImpactService │             │
-│  │NutritionSvc  │  └──────────────┘             │
-│  └──────────────┘                                │
-│                    │                              │
-│                    │ usa                          │
-└────────────────────┼──────────────────────────────┘
-                     │
-┌────────────────────▼─────────────────────────────┐
-│            REPOSITORY LAYER                       │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐            │
-│  │ProductRepo   │  │ UserRepo     │            │
-│  │ :JpaRepository│  │ :JpaRepository│           │
-│  └──────────────┘  └──────────────┘            │
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐            │
-│  │ ScanRepo     │  │ ImpactRepo   │            │
-│  │ FavoriteRepo │  │ NutritionRepo│            │
-│  └──────────────┘  └──────────────┘            │
-│                                                  │
-└──────────────────────────────────────────────────┘
-                     │
-                     │ mapeia
-                     │
-┌────────────────────▼─────────────────────────────┐
-│             DOMAIN LAYER                         │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐            │
-│  │ Product      │  │ UserAccount  │            │
-│  │ @Entity      │  │ @Entity      │            │
-│  └──────────────┘  └──────────────┘            │
-│                                                  │
-│  ┌──────────────┐  ┌──────────────┐            │
-│  │ScanHistory   │  │ Favorite     │            │
-│  │ProductImpact │  │ProductNutrition│           │
-│  └──────────────┘  └──────────────┘            │
-│                                                  │
-└──────────────────────────────────────────────────┘
+```mermaid
+classDiagram
+
+class UserAccount {
+  UUID id
+  String email
+  String passwordHash
+  String displayName
+  OffsetDateTime createdAt
+  OffsetDateTime updatedAt
+}
+
+class Product {
+  UUID id
+  String name
+  String category
+  BigDecimal kcal100g
+  BigDecimal co2PerUnit
+  String barcode
+}
+
+class ScanHistory {
+  UUID id
+  OffsetDateTime scannedAt
+  String source
+}
+
+class Favorite {
+  OffsetDateTime createdAt
+}
+
+class FavoriteId {
+  UUID userId
+  UUID productId
+}
+
+class ProductImpact {
+  UUID productId
+  BigDecimal co2PerUnit
+  BigDecimal waterL
+  String origin
+  OffsetDateTime updatedAt
+}
+
+class ProductNutrition {
+  UUID id
+  String nutriKey
+  String nutriValue
+}
+
+UserAccount "1" --> "0..*" ScanHistory : user
+Product "1" --> "0..*" ScanHistory : product
+
+UserAccount "1" --> "0..*" Favorite : user
+Product "1" --> "0..*" Favorite : product
+Favorite *-- FavoriteId : embedded id
+
+Product "1" --> "0..1" ProductImpact : impact
+Product "1" --> "0..*" ProductNutrition : nutrition
 ```
 
-## Anotações JPA Utilizadas
+## Classes de integracao e infraestrutura
 
-### Product
-```java
-@Entity
-@Table(name = "PRODUCTS")
-- @Id @Column(columnDefinition = "RAW(16)")
-- @NotBlank @Column(nullable = false)
-```
+## Feign
+- `InternalProductClient`
+- `OpenFoodFactsClient`
 
-### UserAccount
-```java
-@Entity
-@Table(name = "USERS")
-- @Id @Column(columnDefinition = "RAW(16)")
-- @Email @Column(unique = true)
-```
+## Seguranca
+- `SecurityConfig`
+- `JwtAuthenticationFilter`
+- `JwtService`
+- `CurrentUserService`
+- `UserRoleResolver`
+- `RoleType`
+- `RestAuthenticationEntryPoint`
+- `RestAccessDeniedHandler`
 
-### ScanHistory
-```java
-@Entity
-@Table(name = "SCAN_HISTORY")
-- @ManyToOne @JoinColumn(name = "USER_ID")
-- @ManyToOne @JoinColumn(name = "PRODUCT_ID")
-```
+## Mensageria
+- `RabbitMessagingConfig`
+- `MessagingProperties`
+- `UserActivityEventPublisher`
+- `UserActivityEventListener`
+- `UserActivityEvent`
 
-### Favorite
-```java
-@Entity
-@Table(name = "FAVORITES")
-- @EmbeddedId
-- @ManyToOne @MapsId("userId")
-- @ManyToOne @MapsId("productId")
-```
+## Observacoes
 
-### ProductImpact
-```java
-@Entity
-@Table(name = "PRODUCT_IMPACT")
-- @Id @Column(columnDefinition = "RAW(16)")
-- @OneToOne @JoinColumn
-```
-
-### ProductNutrition
-```java
-@Entity
-@Table(name = "PRODUCT_NUTRITION")
-- @Id @Column(columnDefinition = "RAW(16)")
-- @ManyToOne @JoinColumn(name = "PRODUCT_ID")
-```
-
-## Padrões de Projeto Aplicados
-
-1. **Repository Pattern**: Abstração do acesso aos dados via JpaRepository
-2. **Service Layer Pattern**: Separação da lógica de negócio
-3. **DTO/Representation Pattern**: EntityModel para HATEOAS
-4. **Builder Pattern**: Lombok @Builder para construção de entidades
-5. **Converter Pattern**: UuidRaw16Converter para conversão UUID ↔ RAW(16)
-
-## Relacionamentos JPA
-
-- **@OneToMany**: UserAccount → ScanHistory, Product → ProductNutrition
-- **@ManyToOne**: ScanHistory → UserAccount, ScanHistory → Product
-- **@ManyToMany**: UserAccount ↔ Product (via Favorite)
-- **@OneToOne**: Product ↔ ProductImpact
+- Existem dois conjuntos de endpoints: mobile-friendly (sem `/api`) e legados/HATEOAS (com `/api`).
+- A logica mobile usa IDs externos com prefixo (`prod-`, `user-`, `history-`, `favorite-`) via `ExternalIdCodec`.
 

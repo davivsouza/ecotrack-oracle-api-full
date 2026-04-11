@@ -1,24 +1,30 @@
-# Integração Frontend (App) com Backend Java
+# Integracao Frontend (App) com Backend Java
 
-## Resposta curta
-Se o front já está integrado com o backend Node usando as mesmas rotas (`/auth`, `/products`, `/history`, `/favorites`) e Bearer token, **não precisa mudar código de integração**.
+## Resumo
 
-Na prática, você troca apenas a URL base:
+Se o app ja estava integrado com o backend Node usando Bearer token, a migracao para o backend Java exige no geral:
+- trocar URL base
+- manter contrato de rotas/payloads
+- garantir envio de `Authorization: Bearer <token>` nas rotas protegidas
+
+## URL base
 
 ```env
-EXPO_PUBLIC_API_URL=http://<host-do-backend-java>:8080
+EXPO_PUBLIC_API_URL=http://<host-da-api-java>:8080
 ```
 
-## Contrato de API usado pelo app
-O backend Java foi alinhado ao contrato do Node para estes endpoints:
+## Rotas principais para o app
 
+Publicas:
 - `GET /health`
 - `POST /auth/register`
 - `POST /auth/login`
-- `GET /auth/me`
 - `GET /products`
 - `GET /products/:id`
 - `GET /products/barcode/:barcode`
+
+Protegidas (JWT):
+- `GET /auth/me`
 - `GET /history`
 - `POST /history`
 - `PATCH /history/:id`
@@ -28,15 +34,19 @@ O backend Java foi alinhado ao contrato do Node para estes endpoints:
 - `PATCH /favorites/:id`
 - `DELETE /favorites/:id`
 
-## O que o front precisa garantir
+## Formato de IDs externos
 
-1. Continuar enviando `Authorization: Bearer <token>` nas rotas protegidas.
-2. Manter os mesmos payloads JSON já usados no Node.
-3. Trocar somente a URL base da API no `.env`.
+As rotas mobile usam IDs externos gerados por `ExternalIdCodec`:
+- Produto: `prod-<uuid_sem_hifen>`
+- Usuario: `user-<uuid_sem_hifen>`
+- Historico: `history-<uuid_sem_hifen>`
+- Favorito: `favorite-<uuid_sem_hifen>`
 
-## Exemplo de requests (iguais ao Node)
+A API tambem aceita UUID padrao em alguns cenarios internos.
 
-### Register
+## Payloads de exemplo
+
+## Register
 
 `POST /auth/register`
 
@@ -48,7 +58,7 @@ O backend Java foi alinhado ao contrato do Node para estes endpoints:
 }
 ```
 
-### Login
+## Login
 
 `POST /auth/login`
 
@@ -59,39 +69,40 @@ O backend Java foi alinhado ao contrato do Node para estes endpoints:
 }
 ```
 
-### Criar histórico (protegido)
+## Criar historico
 
 `POST /history`
 
 ```json
 {
-  "productId": "prod-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "productId": "prod-12345678123412341234123456789abc",
   "note": "opcional"
 }
 ```
 
-### Criar favorito (protegido)
+## Criar favorito
 
 `POST /favorites`
 
 ```json
 {
-  "productId": "prod-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "productId": "prod-12345678123412341234123456789abc",
   "note": "opcional"
 }
 ```
 
-## Checklist rápido de migração
+## Checklist de migracao
 
-- [ ] Backend Java rodando
-- [ ] Banco Oracle acessível
-- [ ] `EXPO_PUBLIC_API_URL` apontando para o Java
+- [ ] API Java rodando
+- [ ] URL base atualizada no app
 - [ ] Login retorna `token` e `user`
-- [ ] `/auth/me` funciona com token
-- [ ] `/history` e `/favorites` funcionando de ponta a ponta
+- [ ] Header Bearer enviado nas rotas protegidas
+- [ ] `/auth/me` funcionando com token
+- [ ] Fluxos de `/history` e `/favorites` completos
 
-## Observações importantes
+## Observacoes
 
-- O app **não precisa alterar fluxo de autenticação** se já usa Bearer token.
-- Se a URL mudar para HTTPS/proxy/ngrok, ajuste apenas `EXPO_PUBLIC_API_URL`.
-- Em ambiente local, confirme CORS/rede entre dispositivo/emulador e API.
+- O backend possui duas familias de endpoints: mobile-friendly e legados `/api/**`.
+- Para o app React Native, use preferencialmente as rotas sem `/api` listadas acima.
+- Em ambiente local com celular fisico, use IP da maquina (nao `localhost`).
+
