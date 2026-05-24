@@ -65,11 +65,14 @@ DB_USER=${{Postgres.PGUSER}}
 DB_PASSWORD=${{Postgres.PGPASSWORD}}
 JWT_SECRET=troque-por-um-segredo-forte
 MESSAGING_ENABLED=false
+SQL_INIT_MODE=always
 OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
 ```
 
 4. Gere um domínio público no Railway.
 5. Valide o deploy acessando `/health` e `/swagger-ui.html`.
+
+Depois que o schema for criado no primeiro deploy, `SQL_INIT_MODE` pode ser alterado para `never`.
 
 ## 🔄 Compatibilidade com o Backend Node (Sprint 3)
 
