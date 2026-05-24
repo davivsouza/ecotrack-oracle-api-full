@@ -22,7 +22,7 @@ public class HealthController {
     response.put("status", "ok");
 
     try {
-      jdbcTemplate.queryForObject("SELECT 1 FROM DUAL", Integer.class);
+      jdbcTemplate.queryForObject("SELECT 1", Integer.class);
       response.put("database", "up");
     } catch (Exception ex) {
       response.put("database", "down");

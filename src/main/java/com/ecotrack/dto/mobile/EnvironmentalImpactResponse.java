@@ -7,6 +7,7 @@ public record EnvironmentalImpactResponse(
   BigDecimal waterUsage,
   String packagingType,
   Integer sustainabilityScore,
+  String environmentalImpactLevel,
   String ecoScoreGrade
 ) {
 }

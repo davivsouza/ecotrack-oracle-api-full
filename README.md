@@ -34,7 +34,7 @@ O **EcoTrack Oracle API** é uma aplicação Spring Boot que permite rastrear o 
 
 1. **Clone o repositório:**
 ```bash
-git clone https://github.com/seu-usuario/ecotrack-oracle-api-full.git
+git clone https://github.com/davivsouza/ecotrack-oracle-api-full.git
 cd ecotrack-oracle-api-full
 ```
 
@@ -325,12 +325,6 @@ Content-Type: application/json
 ```bash
 GET /api/products/barcode/7891000310101
 ```
-
-## 📹 Vídeo de Apresentação
-
-### Link do Vídeo
-
-🔗 **[Acessar Vídeo de Apresentação](https://www.youtube.com/watch?v=SEU_VIDEO_AQUI)**
 
 ## 🛠️ Tecnologias Utilizadas
 

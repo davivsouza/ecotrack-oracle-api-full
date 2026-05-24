@@ -111,9 +111,11 @@ public class MobileProductService {
       impact == null ? null : impact.getWaterL(),
       decimal(nutrition.get("water_usage"))
     );
+    Integer ecoScoreScore = integer(nutrition.get("eco_score_score"));
+    String ecoScoreGrade = firstNonBlank(nutrition.get("eco_score_grade"), nutrition.get("meta_eco_score_grade"));
 
     int healthScore = computeHealthScore(calories, protein, carbs, fat, sugar, sodium, fiber);
-    int sustainabilityScore = computeSustainabilityScore(carbon, water);
+    Integer sustainabilityScore = computeSustainabilityScore(carbon, water, ecoScoreScore);
 
     NutritionalInfoResponse nutritionalInfo = new NutritionalInfoResponse(
       nvl(calories),
@@ -126,11 +128,12 @@ public class MobileProductService {
     );
 
     EnvironmentalImpactResponse environmentalImpact = new EnvironmentalImpactResponse(
-      nvl(carbon),
-      nvl(water),
+      carbon,
+      water,
       nutrition.getOrDefault("packaging_type", "não informado"),
       sustainabilityScore,
-      nutrition.get("eco_score_grade")
+      computeEnvironmentalImpactLevel(sustainabilityScore),
+      ecoScoreGrade
     );
 
     List<String> categories = parseCategories(product.getCategory());
@@ -177,13 +180,17 @@ public class MobileProductService {
       String category = parsePrimaryCategory(categoriesRaw);
       String normalizedBarcode = normalizeBarcode(asString(productData.get("code")), barcode);
 
+      BigDecimal carbonFromNutriments = extractNutriment(productData, "carbon-footprint_100g");
+      BigDecimal carbonFromAgribalyse = extractAgribalyseNutriment(productData, "co2_total");
+      BigDecimal carbon = firstNonNull(carbonFromNutriments, carbonFromAgribalyse);
+
       Product product = Product.builder()
         .id(UUID.randomUUID())
         .name(name.trim())
         .category(category)
         .barcode(normalizedBarcode)
         .kcal100g(extractNutriment(productData, "energy-kcal_100g", "energy_kcal_100g"))
-        .co2PerUnit(extractNutriment(productData, "carbon-footprint_100g"))
+        .co2PerUnit(carbon)
         .build();
 
       Product saved = productRepository.save(product);
@@ -192,11 +199,16 @@ public class MobileProductService {
       String image = asString(productData.get("image_url"));
       String ingredients = asString(productData.get("ingredients_text"));
       String nutriScore = asString(productData.get("nutriscore_grade"));
+      String ecoScoreGrade = asString(productData.get("ecoscore_grade"));
+      BigDecimal ecoScoreScore = decimal(productData.get("ecoscore_score"));
 
       saveNutrition(saved, "meta_brand", safe(brand));
       saveNutrition(saved, "meta_image", safe(image));
       saveNutrition(saved, "meta_ingredients", safe(ingredients));
       saveNutrition(saved, "meta_nutri_score", safe(nutriScore));
+      saveNutrition(saved, "meta_eco_score_grade", safe(ecoScoreGrade));
+      saveNutrition(saved, "eco_score_grade", safe(ecoScoreGrade));
+      saveNumericNutrition(saved, "eco_score_score", ecoScoreScore);
 
       saveNumericNutrition(saved, "calories", extractNutriment(productData, "energy-kcal_100g", "energy_kcal_100g"));
       saveNumericNutrition(saved, "protein", extractNutriment(productData, "proteins_100g"));
@@ -207,11 +219,13 @@ public class MobileProductService {
       saveNumericNutrition(saved, "fiber", extractNutriment(productData, "fiber_100g"));
 
       BigDecimal water = extractNutriment(productData, "water_100g");
-      BigDecimal carbon = firstNonNull(product.getCo2PerUnit(), extractNutriment(productData, "carbon-footprint_100g"));
+      BigDecimal resolvedCarbon = firstNonNull(product.getCo2PerUnit(), carbonFromNutriments, carbonFromAgribalyse);
+      saveNumericNutrition(saved, "carbon_footprint", resolvedCarbon);
+      saveNumericNutrition(saved, "water_usage", water);
 
       productImpactRepository.save(ProductImpact.builder()
         .productId(saved.getId())
-        .co2PerUnit(carbon)
+        .co2PerUnit(resolvedCarbon)
         .waterL(water)
         .origin("OPEN_FOOD_FACTS")
         .updatedAt(java.time.OffsetDateTime.now())
@@ -257,6 +271,12 @@ public class MobileProductService {
     return null;
   }
 
+  private BigDecimal extractAgribalyseNutriment(Map<String, Object> productData, String key) {
+    Map<String, Object> ecoscoreData = map(productData.get("ecoscore_data"));
+    Map<String, Object> agribalyse = map(ecoscoreData.get("agribalyse"));
+    return decimal(agribalyse.get(key));
+  }
+
   private int computeHealthScore(
     BigDecimal calories,
     BigDecimal protein,
@@ -276,11 +296,27 @@ public class MobileProductService {
     return clampScore(score);
   }
 
-  private int computeSustainabilityScore(BigDecimal carbon, BigDecimal water) {
+  private Integer computeSustainabilityScore(BigDecimal carbon, BigDecimal water, Integer ecoScoreScore) {
+    if (carbon == null && water == null) {
+      return ecoScoreScore == null ? null : clampScore(ecoScoreScore);
+    }
     double score = 100d;
     score -= number(carbon) * 20d;
     score -= number(water) * 0.05d;
     return clampScore(score);
+  }
+
+  private String computeEnvironmentalImpactLevel(Integer sustainabilityScore) {
+    if (sustainabilityScore == null) {
+      return "DESCONHECIDO";
+    }
+    if (sustainabilityScore >= 70) {
+      return "BAIXO";
+    }
+    if (sustainabilityScore >= 40) {
+      return "MEDIO";
+    }
+    return "ALTO";
   }
 
   private int clampScore(double score) {
@@ -370,6 +406,17 @@ public class MobileProductService {
     return value == null ? null : String.valueOf(value);
   }
 
+  private Integer integer(Object raw) {
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return new BigDecimal(String.valueOf(raw).replace(",", ".")).setScale(0, RoundingMode.HALF_UP).intValue();
+    } catch (NumberFormatException ex) {
+      return null;
+    }
+  }
+
   @SuppressWarnings("unchecked")
   private Map<String, Object> map(Object value) {
     if (value instanceof Map<?, ?> source) {
@@ -411,6 +458,15 @@ public class MobileProductService {
 
   private String safe(String value) {
     return value == null ? null : value.trim();
+  }
+
+  private String firstNonBlank(String... values) {
+    for (String value : values) {
+      if (value != null && !value.isBlank()) {
+        return value;
+      }
+    }
+    return null;
   }
 
   private String limit(String value, int max) {
