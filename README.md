@@ -51,6 +51,26 @@ mvn spring-boot:run
    - Swagger UI: http://localhost:8080/swagger-ui.html
    - API Docs: http://localhost:8080/v3/api-docs
 
+### Deploy no Railway
+
+O projeto possui `Dockerfile` e `railway.toml` para deploy da API no Railway. O `docker-compose.yml` permanece como suporte de ambiente local e não deve ser usado como definição direta do deploy.
+
+1. Crie um serviço PostgreSQL no Railway.
+2. Crie um serviço a partir deste repositório GitHub.
+3. Configure as variáveis no serviço da API:
+
+```env
+DB_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
+DB_USER=${{Postgres.PGUSER}}
+DB_PASSWORD=${{Postgres.PGPASSWORD}}
+JWT_SECRET=troque-por-um-segredo-forte
+MESSAGING_ENABLED=false
+OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
+```
+
+4. Gere um domínio público no Railway.
+5. Valide o deploy acessando `/health` e `/swagger-ui.html`.
+
 ## 🔄 Compatibilidade com o Backend Node (Sprint 3)
 
 Além dos endpoints legados em `/api/...`, esta versão expõe rotas compatíveis com o app mobile:
