@@ -12,7 +12,11 @@ O **EcoTrack Oracle API** é uma aplicação Spring Boot que permite rastrear o 
 | Gustavo Dantas Oliveira | 560685 
 | Paulo Neto | 560262
 
+## 🌐 Deploy
 
+- API: https://ecotrack-oracle-api-full-production.up.railway.app
+- Swagger UI: https://ecotrack-oracle-api-full-production.up.railway.app/swagger-ui.html
+- Healthcheck: https://ecotrack-oracle-api-full-production.up.railway.app/health
 
 
 ## 🎯 Público-Alvo
@@ -70,7 +74,9 @@ OPEN_FOOD_FACTS_URL=https://world.openfoodfacts.org/api/v2
 ```
 
 4. Gere um domínio público no Railway.
-5. Valide o deploy acessando `/health` e `/swagger-ui.html`.
+5. Valide o deploy acessando:
+   - Healthcheck: https://ecotrack-oracle-api-full-production.up.railway.app/health
+   - Swagger UI: https://ecotrack-oracle-api-full-production.up.railway.app/swagger-ui.html
 
 Depois que o schema for criado no primeiro deploy, `SQL_INIT_MODE` pode ser alterado para `never`.
 
