@@ -1,8 +1,8 @@
-# EcoTrack Oracle API
+# EcoTrack API
 
 ## 📋 Sobre o Projeto
 
-O **EcoTrack Oracle API** é uma aplicação Spring Boot que permite rastrear o impacto ambiental e nutricional de produtos através de código de barras. A aplicação conecta-se ao Oracle Database e oferece funcionalidades para usuários registrarem escaneamentos de produtos, gerenciar favoritos e consultar informações sobre sustentabilidade e nutrição.
+O **EcoTrack API** é uma aplicação Spring Boot que permite rastrear o impacto ambiental e nutricional de produtos através de código de barras. A aplicação conecta-se ao PostgreSQL e oferece funcionalidades para usuários registrarem escaneamentos de produtos, gerenciar favoritos e consultar informações sobre sustentabilidade e nutrição.
 
 ## 👥 Equipe de Desenvolvimento
 
@@ -31,7 +31,7 @@ O **EcoTrack Oracle API** é uma aplicação Spring Boot que permite rastrear o 
 ### Pré-requisitos
 - Java 17 ou superior
 - Maven 3.6+
-- Oracle Database (configurado com as credenciais fornecidas)
+- PostgreSQL
 - IDE (IntelliJ IDEA, Eclipse ou VS Code)
 
 ### Passos para Execução
@@ -44,7 +44,7 @@ cd ecotrack-oracle-api-full
 
 2. **Configure o banco de dados:**
    - Edite o arquivo `src/main/resources/application.properties`
-   - Verifique se as credenciais do Oracle estão corretas
+   - Verifique se as credenciais do PostgreSQL estão corretas
 
 3. **Execute a aplicação:**
 ```bash
@@ -123,7 +123,7 @@ Além dos endpoints legados em `/api/...`, esta versão expõe rotas compatívei
           └──────────────────────┼──────────────────────┘
                                  │
                     ┌─────────────▼─────────────┐
-                    │    EcoTrack Oracle API    │
+                    │       EcoTrack API        │
                     │    (Spring Boot 3.3.3)    │
                     │                           │
                     │  ┌─────────────────────┐ │
@@ -148,8 +148,8 @@ Além dos endpoints legados em `/api/...`, esta versão expõe rotas compatívei
                     └─────────────┼───────────────┘
                                   │
                     ┌─────────────▼─────────────┐
-                    │     Oracle Database       │
-                    │   (RAW(16) UUID Storage)  │
+                    │       PostgreSQL          │
+                    │      (UUID Storage)       │
                     └───────────────────────────┘
 ```
 
@@ -168,13 +168,13 @@ A aplicação segue uma **arquitetura em camadas (Layered Architecture)** com as
 3. **Service Layer**: Lógica de negócio, validações e orquestração
 4. **Repository Layer**: Acesso aos dados com Spring Data JPA
 5. **Domain Layer**: Entidades JPA com mapeamento ORM
-6. **Database Layer**: Oracle Database com armazenamento otimizado
+6. **Database Layer**: PostgreSQL para persistência dos dados
 
 ### Fluxo de Requisição
 
 ```
 Cliente → Controller → Representation → Service → Repository → Database
-         (HTTP/REST)   (HATEOAS)     (Business)  (JPA)       (Oracle)
+         (HTTP/REST)   (HATEOAS)     (Business)  (JPA)       (PostgreSQL)
 ```
 
 ## 📊 Modelo de Dados
@@ -236,7 +236,7 @@ O modelo de dados consiste em 6 entidades principais relacionadas:
 **Constraints:**
 - USERS.EMAIL é único
 - Todas as foreign keys respeitam integridade referencial
-- UUIDs são armazenados como RAW(16) no Oracle
+- UUIDs são armazenados com o tipo nativo `UUID` no PostgreSQL
 
 ### Diagrama de Classes de Entidade
 
@@ -361,7 +361,7 @@ GET /api/products/barcode/7891000310101
 - **Spring Boot 3.3.3** - Framework principal
 - **Spring Data JPA** - Persistência de dados
 - **Spring HATEOAS** - Implementação de hypermedia (Nível 3 REST)
-- **Oracle Database** - Banco de dados relacional
+- **PostgreSQL** - Banco de dados relacional
 - **Lombok** - Redução de boilerplate code
 - **OpenAPI/Swagger** - Documentação da API
 - **Maven** - Gerenciamento de dependências
@@ -442,13 +442,9 @@ GET /api/products/barcode/7891000310101
 - **Repository Pattern** - Abstração do acesso aos dados
 - **Service Layer Pattern** - Separação da lógica de negócio
 - **DTO Pattern** - Transferência de dados entre camadas
-- **Converter Pattern** - Conversão UUID ↔ RAW(16)
 - **Builder Pattern** - Construção de objetos complexos (via Lombok)
 
 ## 🔧 Configurações Especiais
-
-### Conversão UUID para RAW(16)
-A aplicação utiliza um conversor customizado (`UuidRaw16Converter`) para trabalhar com UUIDs no Oracle Database usando o tipo RAW(16), otimizando o armazenamento e performance.
 
 ### Validações Implementadas
 - **@NotBlank** - Campos obrigatórios
